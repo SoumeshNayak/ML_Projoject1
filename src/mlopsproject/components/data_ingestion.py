@@ -8,7 +8,7 @@ import pandas as pd
 from dataclasses import dataclass
 from src.mlopsproject.utils import read_sql_data
 from sklearn.model_selection import train_test_split
-
+from src.mlopsproject.components.data_transformation import DataTransormation,DataTransormationConfig
 @dataclass
 class DataIngestionConfig:
     train_data_path:str=os.path.join('artifacts','train.csv')
@@ -35,5 +35,13 @@ class DataIngestion:
                 self.ingestion_config.test_data_path
             )
         except Exception as e:
-            raise e       
+            raise e 
+if __name__=="__main__":
+    obj=DataIngestion()
+    train_data,test_data=obj.initiate_data_ingestion()
+    data_transformation=DataTransormation()
+    data_transformation.initialte_data_transformation(train_data,test_data)
+    
+    
+                 
     

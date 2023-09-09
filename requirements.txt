@@ -5,4 +5,5 @@ mysql-connector-python
 pymysql
 scikit-learn
 dvc
+dill
 # -e .
