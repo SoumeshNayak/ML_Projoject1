@@ -6,4 +6,5 @@ pymysql
 scikit-learn
 dvc
 dill
+mlflow
 # -e .

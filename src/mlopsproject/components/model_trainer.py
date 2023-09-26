@@ -17,6 +17,8 @@ from src.mlopsproject.loggers import logging
 from src.mlopsproject.utils import save_object
 from src.mlopsproject.utils import evaluate_models
 
+import mlflow
+
 @dataclass
 class ModelTrainerConfig:
     trained_model_file_path=os.path.join("artifacts","model.pkl")
@@ -69,6 +71,19 @@ class ModelTrainer:
             ]
             
             best_model = models[best_model_name]
+            
+            # Convert the params keys in list format
+            model_names=list(params.keys())
+            
+            actual_model=""
+            for model in model_names:
+                if best_model==model:
+                    actual_model+=model
+            best_params=params[actual_model]  
+            
+            # Mlflow pipeline
+            
+                  
             
             logging.info("Got best model")
             
