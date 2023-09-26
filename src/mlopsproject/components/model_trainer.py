@@ -18,7 +18,9 @@ from src.mlopsproject.utils import save_object
 from src.mlopsproject.utils import evaluate_models
 
 import mlflow
-
+import numpy as np
+from sklearn.metrics import mean_absolute_error,mean_squared_error,r2_score
+from urllib.parse import urlparse
 @dataclass
 class ModelTrainerConfig:
     trained_model_file_path=os.path.join("artifacts","model.pkl")
@@ -26,6 +28,12 @@ class ModelTrainerConfig:
 class ModelTrainer:
     def __init__(self):
         self.model_trainer_config=ModelTrainerConfig()
+    
+    def eval_metrics(self,actual,pred):
+        rmse=np.sqrt(mean_squared_error(actual,pred))
+        mae=mean_absolute_error(actual,pred)
+        r2=r2_score(actual,pred)
+        return rmse,mae,r2   
     
     def initiate_model_trainer(self,train_array,test_array):
         try:
@@ -71,19 +79,38 @@ class ModelTrainer:
             ]
             
             best_model = models[best_model_name]
+            print(best_model)
             
             # Convert the params keys in list format
             model_names=list(params.keys())
             
             actual_model=""
             for model in model_names:
-                if best_model==model:
-                    actual_model+=model
+                if best_model_name==model:
+                    actual_model=actual_model+model
             best_params=params[actual_model]  
             
             # Mlflow pipeline
             
-                  
+            mlflow.set_registry_uri("https://dagshub.com/SoumeshNayak/ML_Projoject1.mlflow")
+            tracking_url_type_store=urlparse(mlflow.get_tracking_uri()).scheme
+            
+            with mlflow.start_run():
+                pred_qualit=best_model.predict(x_test)
+                
+                (rmse,mae,r2)=self.eval_metrics(y_test,pred_qualit)
+                
+                mlflow.log_params(best_params)
+                mlflow.log_metric("rmse",rmse)
+                mlflow.log_metric("r2",r2)
+                mlflow.log_metric("mae",mae)
+                
+                # Get the url from dagus hub and track
+                if tracking_url_type_store !="file":
+                    mlflow.sklearn.log_model(best_model,"model",registered_model_name=actual_model)
+                else:
+                    mlflow.sklearn.log_model(best_model,"model")     
+                               
             
             logging.info("Got best model")
             
